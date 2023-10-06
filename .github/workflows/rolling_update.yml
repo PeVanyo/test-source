@@ -1,0 +1,44 @@
+name: Conditional Rolling Update
+on:
+  push:
+    branches:
+      - release
+      - sandbox
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Extract Repo Name
+        id: extract-repo-name
+        run: echo "REPO_NAME=$(basename $GITHUB_REPOSITORY)" >> $GITHUB_ENV
+      
+      - name: Set domain and SSH keys for release
+        if: github.ref == 'refs/heads/release'
+        run: |
+          echo "DOMAIN=${{ secrets.DOMAIN }}" >> $GITHUB_ENV
+          echo "BASTION_SSH_KEY=${{ secrets.SSH_KEY }}" >> $GITHUB_ENV
+          echo "EC2_SSH_KEY=${{ secrets.SSH_KEY }}" >> $GITHUB_ENV
+          echo "BASTION_HOST=${{ secrets.BASTION_HOST }}" >> $GITHUB_ENV
+
+      - name: Set domain and SSH keys for sandbox
+        if: github.ref == 'refs/heads/sandbox'
+        run: |
+          echo "DOMAIN=${{ secrets.DOMAIN }}" >> $GITHUB_ENV
+          echo "BASTION_SSH_KEY=${{ secrets.SSH_KEY }}" >> $GITHUB_ENV
+          echo "EC2_SSH_KEY=${{ secrets.SSH_KEY }}" >> $GITHUB_ENV
+          echo "BASTION_HOST=${{ secrets.BASTION_HOST }}" >> $GITHUB_ENV
+
+      - name: Rolling Update
+        uses: ./.github/actions/rolling-update-action@sandbox # CHANGE TO OTHER REPO PATH IF USED ELSEWHERE
+        with:
+          bastion-host: ${{ env.BASTION_HOST }}
+          bastion-ssh-key: ${{ env.BASTION_SSH_KEY }}
+          ec2-ssh-key: ${{ env.EC2_SSH_KEY }}
+          directory: ${{ env.REPO_NAME }}
+          domain: ${{ env.DOMAIN }}
+          service: ${{ env.REPO_NAME }}
+          branch: ${{ github.ref_name }}
