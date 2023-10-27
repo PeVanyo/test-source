@@ -23,3 +23,6 @@ jobs:
           
           # Send the webhook request
           curl -X POST -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" -d "$JSON_PAYLOAD" "$WEBHOOK_URL"
+
+      - name: Debug Webhook Payload
+        run: echo "$JSON_PAYLOAD"
