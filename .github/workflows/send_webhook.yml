@@ -25,4 +25,4 @@ jobs:
           curl -X POST -H "Authorization: Bearer ${{ secrets.PAT1_TOKEN }}" -d "$JSON_PAYLOAD" "$WEBHOOK_URL"
 
       - name: Debug Webhook Payload
-        run: echo "$JSON_PAYLOAD"
+        run: echo $JSON_PAYLOAD
