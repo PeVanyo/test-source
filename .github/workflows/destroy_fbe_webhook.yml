@@ -1,0 +1,29 @@
+name: Send Webhook to infra-test
+
+on:
+  pull_request:
+    types:
+      - closed
+      - synchronize  # Triggered when PR is merged
+
+jobs:
+  send-webhook:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Send Webhook to Infrastructure Repository
+        run: |
+          # Define the webhook URL of your "infra-test" repository
+          WEBHOOK_URL="https://api.github.com/repos/PeVanyo/infra-test/dispatches"
+          
+          # Extract the Pull Request number
+          PR_NUMBER=$(jq --raw-output .pull_request.number $GITHUB_EVENT_PATH)
+          
+          # Create a JSON payload for the webhook
+          JSON_PAYLOAD="{\"event_type\":\"destroy-environment\",\"client_payload\":{\"pull_request_number\":$PR_NUMBER}}"
+          
+          # Send the webhook request
+          curl -X POST -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" -d "$JSON_PAYLOAD" "$WEBHOOK_URL"
+      
+      - name: Debug Webhook Payload
+        run: echo $JSON_PAYLOAD
