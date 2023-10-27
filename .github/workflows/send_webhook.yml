@@ -22,7 +22,7 @@ jobs:
           JSON_PAYLOAD="{\"event_type\":\"pull_request_created\",\"client_payload\":{\"pull_request_number\":$PR_NUMBER}}"
           
           # Send the webhook request
-          curl -X POST -H "Authorization: Bearer ${{ secrets.PAT_TOKEN }}" -d "$JSON_PAYLOAD" "$WEBHOOK_URL"
+          curl -X POST -H "Authorization: Bearer ${{ secrets.cross-repo-token }}" -d "$JSON_PAYLOAD" "$WEBHOOK_URL"
 
       - name: Debug Webhook Payload
         run: echo "$JSON_PAYLOAD"
