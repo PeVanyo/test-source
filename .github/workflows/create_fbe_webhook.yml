@@ -1,4 +1,4 @@
-name: Send Webhook to Infrastructure
+name: Send Create Webhook to Infrastructure
 
 on:
   pull_request:

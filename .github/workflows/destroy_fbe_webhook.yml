@@ -1,4 +1,4 @@
-name: Send Webhook to infra-test
+name: Send Destroy Webhook to infra-test
 
 on:
   pull_request:
