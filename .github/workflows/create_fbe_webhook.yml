@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Send Webhook to Infrastructure
+      - name: Send Webhook to Infrastructure Repository
         run: |
           # Define the webhook URL of your "bb-infrastructure" repository
           WEBHOOK_URL="https://api.github.com/repos/PeVanyo/infra-test/dispatches"
