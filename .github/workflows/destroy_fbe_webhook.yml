@@ -11,36 +11,30 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Fetch Dispatch Events and Output Response
-        run: |
-          REPO_NAME=${{ github.repository }}
-          API_RESPONSE=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
-                               "https://api.github.com/repos/$REPO_NAME/dispatches")
-          echo "API Response:"
-          echo "$API_RESPONSE"
+      - name: Delay job
+        run: sleep 60
 
-    #  - name: Check for 'Create Webhook Exited Early' Dispatch Event
-    #    id: check_dispatch
-    #    run: |
-    #      sleep 60
-    #      PR_NUMBER=${{ github.event.pull_request.number }}
-    #      REPO_NAME=${{ github.repository }}
-    #      EVENTS=$(curl -H "Authorization: token ${{ secrets.test_PAT }}" \
-    #              "https://api.github.com/repos/$REPO_NAME/dispatches")
-    #      
-    #      # Assuming that the event type is named 'create-webhook-exited-early'
-    #      HAS_EXITED_EARLY_EVENT=$(echo "$EVENTS" | jq --arg PR_NUMBER "$PR_NUMBER" '.[] | select(.event_type == "create-webhook-exited-early" and .client_payload.pr_number == $PR_NUMBER)')
-#
-    #      if [ ! -z "$HAS_EXITED_EARLY_EVENT" ]; then
-    #        echo "Found 'Create Webhook Exited Early' event for PR $PR_NUMBER. Exiting Destroy workflow."
-    #        echo "::set-output name=should_exit::true"
-    #      else
-    #        echo "No 'Create Webhook Exited Early' event found for PR $PR_NUMBER. Continuing with Destroy workflow."
-    #        echo "::set-output name=should_exit::false"
-    #      fi
-#
-    #  - name: Send Webhook to Infrastructure Repository
-    #    if: steps.check_workflow.outputs.should_exit != 'true'
-    #    run: |
-    #      echo "============================================================================="
-    #      echo "The PR is still open, proceeding with webhook."
+      - name: Download PR closed early artifact
+        id: download_artifact
+        uses: actions/download-artifact@v2
+        with:
+          name: pr-${{ github.event.pull_request.number }}-closed-early-artifact
+          path: artifact
+
+      - name: Check if PR was closed early
+        id: check_pr_closed_early
+        run: |
+          PR_NUMBER=${{ github.event.pull_request.number }}
+          if [ -f artifact/pr-${PR_NUMBER}-closed-early.txt ]; then
+            echo "PR $PR_NUMBER was closed early, exiting workflow."
+            echo "::set-output name=should_exit::true"
+          else
+            echo "PR $PR_NUMBER was not closed early, continuing with workflow."
+            echo "::set-output name=should_exit::false"
+          fi
+
+      - name: Send Webhook to Infrastructure Repository
+        if: steps.check_workflow.outputs.should_exit != 'true'
+        run: |
+          echo "============================================================================="
+          echo "The PR is still open, proceeding with webhook."

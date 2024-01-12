@@ -28,14 +28,19 @@ jobs:
           done
           echo "::set-output name=should_exit::false"
 
-      - name: Trigger Dispatch Event if PR is closed
+      - name: Check if PR is closed and create artifact
         if: steps.check_pr.outputs.should_exit != 'false'
         run: |
-          curl -X POST -H "Authorization: token ${{ secrets.test_PAT }}" \
-               -H "Accept: application/vnd.github.everest-preview+json" \
-               -H "Content-Type: application/json" \
-               https://api.github.com/repos/${{ github.repository }}/dispatches \
-               -d '{"event_type": "create-webhook-exited-early", "client_payload": {"pr_number": "${{ github.event.pull_request.number }}"} }'
+          PR_NUMBER=${{ github.event.pull_request.number }}
+          echo "PR closed early" > pr-${PR_NUMBER}-closed-early.txt
+          echo "::set-output name=pr_closed_early::true"
+
+      - name: Upload PR closed early artifact
+        if: steps.previous_step.outputs.pr_closed_early == 'true'
+        uses: actions/upload-artifact@v2
+        with:
+          name: pr-${{ github.event.pull_request.number }}-closed-early-artifact
+          path: pr-${{ github.event.pull_request.number }}-closed-early.txt
 
       - name: Send Webhook to Infrastructure Repository
         if: steps.check_pr.outputs.should_exit != 'true'
