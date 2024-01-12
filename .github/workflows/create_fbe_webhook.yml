@@ -14,6 +14,7 @@ jobs:
         id: check_pr
         run: |
           for i in {1..6}; do
+            echo "Making API call to check PR status..."
             pr_status=$(curl -s -H "Authorization: token ${{ secrets.test_PAT }}" \
                               https://api.github.com/repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }} \
                               | jq -r '.state')
@@ -37,6 +38,7 @@ jobs:
           echo "The PR is still open, proceeding with webhook."
 
       - name: Add PR comment
+        if: steps.check_pr.outputs.should_exit != 'true'
         run: |
           echo "============================================================================="
           echo "Adding PR comment..."
