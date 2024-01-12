@@ -11,19 +11,37 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Check Create Webhook Workflow Status
+        id: check_workflow
+        run: |
+          PR_NUMBER=${{ github.event.pull_request.number }}
+          REPO_NAME=${{ github.repository }}
+          WORKFLOW_RUNS=$(curl -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+            "https://api.github.com/repos/$REPO_NAME/actions/runs?event=pull_request&status=completed")
+          
+          # Filter to find the relevant workflow run for the "Send Create Webhook" workflow
+          CREATE_WORKFLOW_RUN_ID=$(echo "$WORKFLOW_RUNS" | jq --arg PR_NUMBER "$PR_NUMBER" '.workflow_runs[] | select(.name == "Send Create Webhook to Infrastructure Repository" and (.head_commit.message | contains("PR #$PR_NUMBER") or .head_branch == "pr-$PR_NUMBER")) | .id')
+          
+          if [ -z "$CREATE_WORKFLOW_RUN_ID" ]; then
+            echo "No matching Create Webhook Workflow run found for PR $PR_NUMBER."
+            echo "::set-output name=should_exit::false"
+          else
+            CREATE_WORKFLOW_STATUS=$(curl -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+              "https://api.github.com/repos/$REPO_NAME/actions/runs/$CREATE_WORKFLOW_RUN_ID" | jq -r '.conclusion')
+
+            if [ "$CREATE_WORKFLOW_STATUS" = "success" ]; then
+              echo "Create Webhook Workflow exited successfully for PR $PR_NUMBER. Exiting Destroy workflow."
+              echo "::set-output name=should_exit::true"
+            else
+              echo "Create Webhook Workflow did not exit successfully for PR $PR_NUMBER. Continuing with Destroy workflow."
+              echo "::set-output name=should_exit::false"
+            fi
+          fi
+
       - name: Send Webhook to Infrastructure Repository
         run: |
-          # Define the webhook URL of your "infra-test" repository
-          WEBHOOK_URL="https://api.github.com/repos/PeVanyo/infra-test/dispatches"
-          
-          # Extract the Pull Request number
-          PR_NUMBER=$(jq --raw-output .pull_request.number $GITHUB_EVENT_PATH)
-          
-          # Create a JSON payload for the webhook
-          JSON_PAYLOAD="{\"event_type\":\"destroy-environment\",\"client_payload\":{\"pull_request_number\":$PR_NUMBER}}"
-          
-          # Send the webhook request
-          curl -X POST -H "Authorization: Bearer ${{ secrets.PAT1_TOKEN }}" -d "$JSON_PAYLOAD" "$WEBHOOK_URL"
-      
-      - name: Debug Webhook Payload
-        run: echo $JSON_PAYLOAD
+          echo "============================================================================="
+          echo "The PR is still open, proceeding with webhook."
+
+      #- name: Debug Webhook Payload
+      #  run: echo $JSON_PAYLOAD
