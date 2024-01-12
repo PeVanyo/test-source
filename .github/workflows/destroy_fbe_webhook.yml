@@ -39,6 +39,7 @@ jobs:
           fi
 
       - name: Send Webhook to Infrastructure Repository
+        if: steps.check_workflow.outputs.should_exit != 'true'
         run: |
           echo "============================================================================="
           echo "The PR is still open, proceeding with webhook."
