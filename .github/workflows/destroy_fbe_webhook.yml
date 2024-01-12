@@ -14,6 +14,7 @@ jobs:
       - name: Check Create Webhook Workflow Status
         id: check_workflow
         run: |
+          sleep 60
           PR_NUMBER=${{ github.event.pull_request.number }}
           REPO_NAME=${{ github.repository }}
           WORKFLOW_RUNS=$(curl -H "Authorization: token ${{ secrets.test_PAT }}" \
