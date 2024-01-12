@@ -29,14 +29,14 @@ jobs:
           echo "::set-output name=should_exit::false"
 
       - name: Check if PR is closed and create artifact
-        if: steps.check_pr.outputs.should_exit != 'false'
+        if: steps.check_pr.outputs.should_exit == 'true'
         run: |
           PR_NUMBER=${{ github.event.pull_request.number }}
           echo "PR closed early" > pr-${PR_NUMBER}-closed-early.txt
           echo "::set-output name=pr_closed_early::true"
 
       - name: Upload PR closed early artifact
-        if: steps.previous_step.outputs.pr_closed_early == 'true'
+        if: steps.check_pr.outputs.should_exit == 'true'
         uses: actions/upload-artifact@v2
         with:
           name: pr-${{ github.event.pull_request.number }}-closed-early-artifact
