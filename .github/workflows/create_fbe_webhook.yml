@@ -29,7 +29,7 @@ jobs:
           echo "::set-output name=should_exit::false"
 
       - name: Trigger Dispatch Event if PR is closed
-        if: steps.check_pr.outputs.should_exit = 'true'
+        if: steps.check_pr.outputs.should_exit != 'false'
         run: |
           curl -X POST -H "Authorization: token ${{ secrets.test_PAT }}" \
                -H "Accept: application/vnd.github.everest-preview+json" \
