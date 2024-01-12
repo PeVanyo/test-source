@@ -16,7 +16,7 @@ jobs:
         run: |
           PR_NUMBER=${{ github.event.pull_request.number }}
           REPO_NAME=${{ github.repository }}
-          WORKFLOW_RUNS=$(curl -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+          WORKFLOW_RUNS=$(curl -H "Authorization: token ${{ secrets.test_PAT }}" \
             "https://api.github.com/repos/$REPO_NAME/actions/runs?event=pull_request&status=completed")
           
           # Filter to find the relevant workflow run for the "Send Create Webhook" workflow
@@ -26,7 +26,7 @@ jobs:
             echo "No matching Create Webhook Workflow run found for PR $PR_NUMBER."
             echo "::set-output name=should_exit::false"
           else
-            CREATE_WORKFLOW_STATUS=$(curl -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+            CREATE_WORKFLOW_STATUS=$(curl -H "Authorization: token ${{ secrets.test_PAT }}" \
               "https://api.github.com/repos/$REPO_NAME/actions/runs/$CREATE_WORKFLOW_RUN_ID" | jq -r '.conclusion')
 
             if [ "$CREATE_WORKFLOW_STATUS" = "success" ]; then
