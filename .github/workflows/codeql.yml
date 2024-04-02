@@ -20,7 +20,7 @@ jobs:
 
     steps:
     - name: Checkout repository
-      uses: action/checkout@v4
+      uses: action/checkout@v3
 
     - name: Initiate CodeQL
       uses: github/codeql-action/init@v3
