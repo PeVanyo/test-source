@@ -1,13 +1,15 @@
 from flask import Flask, render_template, request, redirect, url_for, session
 import sqlite3
+import hashlib
+import random
 
 app = Flask(__name__)
 app.secret_key = b'_5#y2L"F4Q8z\n\xec]/'
 
 # Dummy user database
 users = {
-    'alice': 'password123',
-    'bob': 'password456'
+    'alice': '5f4dcc3b5aa765d61d8327deb882cf99',  # 'password123' hashed with MD5
+    'bob': '482c811da5d5b4bc6d497ffa98491e38'     # 'password456' hashed with MD5
 }
 
 @app.route('/')
@@ -43,6 +45,12 @@ def login():
 def logout():
     session.pop('username', None)
     return redirect(url_for('home'))
+
+@app.route('/generate_random_number')
+def generate_random_number():
+    # Warning: Using insecure random number generation
+    rand_num = random.randint(0, 100)
+    return f"Random number: {rand_num}"
 
 if __name__ == '__main__':
     app.run(debug=True)
