@@ -16,7 +16,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        language: [ "python" ]
+        - language: [ "java" ]
+        build-mode: none
 
     steps:
     - name: Checkout repository
@@ -25,8 +26,8 @@ jobs:
     - name: Initiate CodeQL
       uses: github/codeql-action/init@v3
       with:
-        packs: codeql/python-queries
-        queries: python-security-and-quality
+        packs: codeql/java-queries
+        queries: java-security-and-quality
         languages: ${{ matrix.language }}
 
     - name: Perform CodeQL Analysis
